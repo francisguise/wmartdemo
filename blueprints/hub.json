@@ -1,0 +1,158 @@
+{
+  "identifier": "hub",
+  "title": "Engineering Hub",
+  "icon": "HUB",
+  "description": "Represents one of Walmart's 10 global engineering hubs. The top-level organisational anchor for all services, teams, and infrastructure within that geography.",
+  "schema": {
+    "properties": {
+      "location": {
+        "type": "string",
+        "title": "City / Location",
+        "description": "Physical city and country of the hub (e.g. Bentonville AR, USA)",
+        "icon": "DefaultProperty"
+      },
+      "region": {
+        "type": "string",
+        "title": "Region",
+        "description": "Broad geographic region for grouping and dashboarding",
+        "enum": ["North America", "LATAM", "EMEA", "APAC"],
+        "enumColors": {
+          "North America": "blue",
+          "LATAM": "green",
+          "EMEA": "orange",
+          "APAC": "purple"
+        }
+      },
+      "timezone": {
+        "type": "string",
+        "title": "Primary Timezone",
+        "description": "IANA timezone identifier (e.g. America/Chicago)",
+        "icon": "DefaultProperty"
+      },
+      "hub_lead": {
+        "type": "string",
+        "title": "Engineering Hub Lead",
+        "description": "The VP / Director of Engineering accountable for this hub"
+      },
+      "hub_lead_email": {
+        "type": "string",
+        "format": "email",
+        "title": "Hub Lead Email",
+        "description": "Direct contact for escalations and ownership queries"
+      },
+      "slack_channel": {
+        "type": "string",
+        "format": "url",
+        "title": "Slack Channel URL",
+        "description": "Primary Slack channel for hub-wide communications"
+      },
+      "confluence_space": {
+        "type": "string",
+        "format": "url",
+        "title": "Confluence / Wiki Space",
+        "description": "Hub-level documentation and runbook space"
+      },
+      "developer_count": {
+        "type": "number",
+        "title": "Developer Headcount",
+        "description": "Approximate number of software engineers currently active in this hub"
+      },
+      "primary_cloud_provider": {
+        "type": "string",
+        "title": "Primary Cloud Provider",
+        "description": "The dominant cloud platform used by this hub",
+        "enum": ["AWS", "GCP", "Azure", "Multi-Cloud", "On-Premise"],
+        "enumColors": {
+          "AWS": "orange",
+          "GCP": "red",
+          "Azure": "blue",
+          "Multi-Cloud": "purple",
+          "On-Premise": "lightGray"
+        }
+      },
+      "status": {
+        "type": "string",
+        "title": "Hub Status",
+        "description": "Operational state of the hub",
+        "enum": ["Active", "Scaling", "Under Restructure", "Wind-Down"],
+        "enumColors": {
+          "Active": "green",
+          "Scaling": "blue",
+          "Under Restructure": "yellow",
+          "Wind-Down": "red"
+        }
+      },
+      "established_date": {
+        "type": "string",
+        "format": "date-time",
+        "title": "Established Date",
+        "description": "When this engineering hub was formally established"
+      },
+      "on_call_rotation_url": {
+        "type": "string",
+        "format": "url",
+        "title": "On-Call Rotation URL",
+        "description": "Link to PagerDuty / OpsGenie schedule for hub-level on-call"
+      },
+      "production_readiness_target": {
+        "type": "number",
+        "title": "Production Readiness Target (%)",
+        "description": "The hub's internal target score for production readiness scorecards (0-100)"
+      }
+    },
+    "required": ["location", "region", "hub_lead", "hub_lead_email", "status"]
+  },
+  "relations": {},
+  "mirrorProperties": {},
+  "calculationProperties": {
+    "hub_wiki_badge": {
+      "title": "Wiki & Comms",
+      "description": "Quick-access badge combining Slack and Confluence links",
+      "calculation": "'[Slack](' + .properties.slack_channel + ') | [Wiki](' + .properties.confluence_space + ')'",
+      "type": "string",
+      "format": "markdown"
+    }
+  },
+  "aggregationProperties": {
+    "total_services": {
+      "title": "Total Services",
+      "type": "number",
+      "target": "service",
+      "calculationSpec": {
+        "calculationBy": "entities",
+        "func": "count"
+      }
+    },
+    "critical_vulnerability_count": {
+      "title": "Critical Vulnerabilities (Hub-wide)",
+      "type": "number",
+      "target": "service",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "critical_vuln_count",
+            "operator": ">",
+            "value": 0
+          }
+        ]
+      },
+      "calculationSpec": {
+        "calculationBy": "property",
+        "func": "sum",
+        "property": "critical_vuln_count"
+      }
+    },
+    "avg_production_readiness_score": {
+      "title": "Avg. Production Readiness Score",
+      "type": "number",
+      "target": "service",
+      "calculationSpec": {
+        "calculationBy": "property",
+        "func": "average",
+        "averageOf": "month",
+        "property": "production_readiness_score"
+      }
+    }
+  }
+}
