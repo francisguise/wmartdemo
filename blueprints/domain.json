@@ -1,0 +1,68 @@
+{
+  "identifier": "domain",
+  "title": "Domain",
+  "icon": "Blueprint",
+  "schema": {
+    "properties": {
+      "domain_lead_email": {
+        "type": "string",
+        "format": "email",
+        "title": "Domain Lead Email"
+      },
+      "status": {
+        "type": "string",
+        "title": "Status",
+        "enum": [
+          "Active",
+          "Deprecated",
+          "Incubating"
+        ],
+        "enumColors": {
+          "Active": "green",
+          "Deprecated": "red",
+          "Incubating": "blue"
+        }
+      }
+    },
+    "required": [
+      "domain_lead_email",
+      "status"
+    ]
+  },
+  "mirrorProperties": {},
+  "calculationProperties": {},
+  "aggregationProperties": {
+    "total_services": {
+      "title": "Total Services",
+      "type": "number",
+      "target": "service",
+      "calculationSpec": {
+        "calculationBy": "entities",
+        "func": "count"
+      }
+    },
+    "critical_vulnerability_count": {
+      "title": "Critical Vulnerabilities",
+      "type": "number",
+      "target": "service",
+      "calculationSpec": {
+        "calculationBy": "property",
+        "func": "sum",
+        "property": "critical_vuln_count"
+      }
+    },
+    "avg_production_readiness_score": {
+      "title": "Avg. Production Readiness Score",
+      "type": "number",
+      "target": "service",
+      "calculationSpec": {
+        "calculationBy": "property",
+        "func": "average",
+        "averageOf": "total",
+        "property": "production_readiness_score",
+        "measureTimeBy": "$createdAt"
+      }
+    }
+  },
+  "relations": {}
+}
