@@ -1,0 +1,414 @@
+{
+  "identifier": "service",
+  "description": "",
+  "title": "Service",
+  "icon": "Microservice",
+  "ownership": {
+    "type": "Direct"
+  },
+  "schema": {
+    "properties": {
+      "critical_vuln_count": {
+        "type": "number",
+        "title": "Critical Vulnerabilities",
+        "default": 0
+      },
+      "production_readiness_score": {
+        "type": "number",
+        "title": "Production Readiness Score",
+        "default": 0
+      },
+      "tier": {
+        "type": "string",
+        "title": "Service Tier",
+        "enum": [
+          "customer-facing",
+          "internal",
+          "deprecated"
+        ],
+        "enumColors": {
+          "customer-facing": "red",
+          "internal": "blue",
+          "deprecated": "lightGray"
+        }
+      },
+      "business_criticality": {
+        "type": "string",
+        "title": "Business Criticality",
+        "enum": [
+          "critical",
+          "high",
+          "medium",
+          "low"
+        ],
+        "enumColors": {
+          "critical": "red",
+          "high": "orange",
+          "medium": "yellow",
+          "low": "green"
+        }
+      },
+      "owning_team": {
+        "type": "string",
+        "title": "Owning Team"
+      },
+      "slack_channel": {
+        "type": "string",
+        "title": "Slack Alert Channel"
+      },
+      "data_classification": {
+        "type": "string",
+        "title": "Data Classification",
+        "enum": [
+          "public",
+          "internal",
+          "confidential",
+          "restricted"
+        ],
+        "enumColors": {
+          "public": "green",
+          "internal": "blue",
+          "confidential": "orange",
+          "restricted": "red"
+        },
+        "description": "Highest sensitivity of data this service stores, processes, or transmits"
+      },
+      "regulatory_scope": {
+        "type": "array",
+        "title": "Regulatory Scope",
+        "items": {
+          "type": "string",
+          "enum": [
+            "PCI-DSS",
+            "CCPA",
+            "GDPR",
+            "HIPAA",
+            "none"
+          ]
+        },
+        "description": "Compliance frameworks this service falls under"
+      }
+    },
+    "required": []
+  },
+  "mirrorProperties": {
+    "repo_id": {
+      "title": "Repo ID",
+      "path": "repository.$identifier"
+    },
+    "last_push": {
+      "title": "Last push ",
+      "path": "repository.last_push"
+    },
+    "defaultBranch": {
+      "title": "Default branch",
+      "path": "repository.defaultBranch"
+    },
+    "url": {
+      "title": "Repository URL",
+      "path": "repository.url"
+    },
+    "description": {
+      "title": "Description",
+      "path": "repository.description"
+    },
+    "visibility": {
+      "title": "Visibility",
+      "path": "repository.visibility"
+    },
+    "language": {
+      "title": "Language ",
+      "path": "repository.language"
+    },
+    "last_contributor": {
+      "title": "Last contributor ",
+      "path": "repository.last_contributor"
+    },
+    "require_code_owner_review": {
+      "title": "Require code owner review ",
+      "path": "repository.require_code_owner_review"
+    },
+    "required_approvals_for_pr": {
+      "title": "Required approvals for PR",
+      "path": "repository.require_approval_count"
+    },
+    "readme": {
+      "title": "README",
+      "path": "repository.readme"
+    },
+    "codeowners": {
+      "title": "CODEOWNERS",
+      "path": "repository.codeowners"
+    },
+    "snyk_target_name": {
+      "title": "Snyk Target Name",
+      "path": "snyk_target.$title"
+    },
+    "enabled_snyk_products": {
+      "title": "Enabled Snyk products",
+      "path": "snyk_target.snyk_product_types"
+    }
+  },
+  "calculationProperties": {
+    "freshness": {
+      "title": "Repository Freshness ",
+      "icon": "DefaultProperty",
+      "description": "Days since last push to the repository main page",
+      "calculation": "((now | todateiso8601) as $now | ($now | fromdateiso8601) - (.properties.last_push | fromdateiso8601)) / 86400 | floor",
+      "type": "number"
+    }
+  },
+  "aggregationProperties": {
+    "lead_time_for_change": {
+      "title": "Lead Time for Change",
+      "icon": "DefaultProperty",
+      "type": "number",
+      "target": "githubPullRequest",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "status",
+            "operator": "=",
+            "value": "merged"
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "average",
+        "averageOf": "total",
+        "property": "leadTimeHours",
+        "measureTimeBy": "$createdAt",
+        "calculationBy": "property"
+      }
+    },
+    "snyk_code_projects": {
+      "title": "Snyk Code Projects",
+      "icon": "DefaultProperty",
+      "type": "number",
+      "description": "The number of Snyk Code projects for this service",
+      "target": "snykProject",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "snyk_product_type",
+            "operator": "=",
+            "value": "Code"
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "snyk_open_source_projects": {
+      "title": "Snyk Open Source Projects",
+      "icon": "DefaultProperty",
+      "type": "number",
+      "description": "The number of Snyk Open Source projects for this service",
+      "target": "snykProject",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "snyk_product_type",
+            "operator": "=",
+            "value": "Open Source"
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "open_critical_vulnerabilities": {
+      "title": "Open Critical Vulnerabilities",
+      "icon": "DefaultProperty",
+      "type": "number",
+      "description": "The number of Open Critical Vulnerabilities",
+      "target": "snykVulnerability",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "status",
+            "operator": "=",
+            "value": "open"
+          },
+          {
+            "property": "severity",
+            "operator": "=",
+            "value": "critical"
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "open_high_vulnerabilities": {
+      "title": "Open High Vulnerabilities",
+      "icon": "DefaultProperty",
+      "type": "number",
+      "target": "snykVulnerability",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "status",
+            "operator": "=",
+            "value": "open"
+          },
+          {
+            "property": "severity",
+            "operator": "=",
+            "value": "high"
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "open_medium_vulnerabilities": {
+      "title": "Open Medium Vulnerabilities",
+      "icon": "DefaultProperty",
+      "type": "number",
+      "target": "snykVulnerability",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "status",
+            "operator": "=",
+            "value": "open"
+          },
+          {
+            "property": "severity",
+            "operator": "=",
+            "value": "medium"
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "open_low_vulnerabilities": {
+      "title": "Open Low Vulnerabilities",
+      "icon": "DefaultProperty",
+      "type": "number",
+      "target": "snykVulnerability",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "status",
+            "operator": "=",
+            "value": "open"
+          },
+          {
+            "property": "severity",
+            "operator": "=",
+            "value": "low"
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "fixes_in_the_last_30_days": {
+      "title": "Fixes in the Last 30 Days",
+      "type": "number",
+      "description": "Vulnerability resolutions from active fixes in the last 30 days",
+      "target": "snykVulnerability",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "status",
+            "operator": "=",
+            "value": "resolved"
+          },
+          {
+            "property": "resolution_type",
+            "operator": "=",
+            "value": "fixed"
+          },
+          {
+            "property": "resolved_at",
+            "operator": "between",
+            "value": {
+              "preset": "lastMonth"
+            }
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "resolved_in_last_30_days": {
+      "title": "Resolved in Last 30 Days",
+      "type": "number",
+      "description": "Snyk Issues resolved in the last 30 days (fixed, and disappeared)",
+      "target": "snykVulnerability",
+      "query": {
+        "combinator": "and",
+        "rules": [
+          {
+            "property": "status",
+            "operator": "=",
+            "value": "resolved"
+          },
+          {
+            "property": "resolved_at",
+            "operator": "between",
+            "value": {
+              "preset": "lastMonth"
+            }
+          }
+        ]
+      },
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    }
+  },
+  "relations": {
+    "snyk_target": {
+      "title": "Snyk Target",
+      "target": "snykTarget",
+      "required": false,
+      "many": false
+    },
+    "hub": {
+      "title": "Hub",
+      "target": "hub",
+      "required": false,
+      "many": false
+    },
+    "repository": {
+      "title": "Repository",
+      "target": "githubRepository",
+      "required": false,
+      "many": false
+    },
+    "domain": {
+      "title": "Domain",
+      "target": "domain",
+      "required": false,
+      "many": false
+    }
+  }
+}
