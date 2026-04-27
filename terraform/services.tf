@@ -405,4 +405,15 @@ resource "port_entity" "services" {
     port_entity.hubs,
     port_entity.domains,
   ]
+
+  lifecycle {
+    ignore_changes = [relations]
+  }
 }
+
+# Appended separately because Port's provider uses create/override — any
+# relation not explicitly defined would be nulled on every apply. The
+# service blueprint has repository and snyk_target relations populated by
+# integrations. Ignoring relation drift after creation lets integrations
+# populate those relations without Terraform overwriting them.
+# hub and domain are set correctly on first apply and stable thereafter.
