@@ -1,0 +1,86 @@
+name: Provision Dev Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      port_context:
+        required: true
+        type: string
+      service:
+        required: true
+        type: string
+      target_cluster:
+        required: true
+        type: string
+      resource_profile:
+        required: true
+        type: string
+      expiry:
+        required: true
+        type: string
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log received inputs
+        run: |
+          echo "🚀 Provisioning environment for service: ${{ inputs.service }}"
+          echo "📍 Target cluster: ${{ inputs.target_cluster }}"
+          echo "⚙️  Resource profile: ${{ inputs.resource_profile }}"
+          echo "⏱  Expiry: ${{ inputs.expiry }}"
+
+      - name: Simulate Snyk security scan
+        run: |
+          echo "🛡 Running Snyk container scan..."
+          sleep 3
+          echo "✅ No critical vulnerabilities found"
+
+      - name: Simulate Terraform namespace creation
+        run: |
+          echo "🏗 Running terraform apply..."
+          sleep 5
+          echo "✅ Namespace wmt-${{ inputs.service }}-dev created"
+          echo "✅ RBAC roles applied"
+          echo "✅ Resource quotas configured"
+
+      - name: Simulate ArgoCD sync
+        run: |
+          echo "🚀 ArgoCD syncing to cluster..."
+          sleep 4
+          echo "✅ Namespace active on cluster"
+
+      - name: Simulate Datadog dashboard creation
+        run: |
+          echo "📊 Cloning monitoring template..."
+          sleep 2
+          echo "✅ Dashboard created"
+
+      - name: Create environment entity in Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.port.io
+          operation: UPSERT
+          identifier: "wmt-${{ inputs.service }}-dev"
+          blueprint: environment
+          properties: |
+            {
+              "type": "dev",
+              "status": "active",
+              "namespace": "wmt-${{ inputs.service }}-dev",
+              "resource_profile": "${{ inputs.resource_profile }}",
+              "expiry": "${{ inputs.expiry }}"
+            }
+
+      - name: Mark Port action run as SUCCESS
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.port.io
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          status: SUCCESS
+          logMessage: "✅ Dev environment wmt-${{ inputs.service }}-dev provisioned successfully"
