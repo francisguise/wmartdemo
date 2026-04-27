@@ -1,21 +1,7 @@
-name: Provision Dev Environment
-
 on:
   workflow_dispatch:
     inputs:
       port_context:
-        required: true
-        type: string
-      service:
-        required: true
-        type: string
-      target_cluster:
-        required: true
-        type: string
-      resource_profile:
-        required: true
-        type: string
-      expiry:
         required: true
         type: string
 
@@ -25,10 +11,10 @@ jobs:
     steps:
       - name: Log received inputs
         run: |
-          echo "🚀 Provisioning environment for service: ${{ inputs.service }}"
-          echo "📍 Target cluster: ${{ inputs.target_cluster }}"
-          echo "⚙️  Resource profile: ${{ inputs.resource_profile }}"
-          echo "⏱  Expiry: ${{ inputs.expiry }}"
+          echo "🚀 Service: ${{ fromJson(inputs.port_context).service }}"
+          echo "📍 Cluster: ${{ fromJson(inputs.port_context).target_cluster }}"
+          echo "⚙️  Profile: ${{ fromJson(inputs.port_context).profile }}"
+          echo "⏱  TTL: ${{ fromJson(inputs.port_context).ttl }}"
 
       - name: Simulate Snyk security scan
         run: |
@@ -40,7 +26,7 @@ jobs:
         run: |
           echo "🏗 Running terraform apply..."
           sleep 5
-          echo "✅ Namespace wmt-${{ inputs.service }}-dev created"
+          echo "✅ Namespace wmt-${{ fromJson(inputs.port_context).service }}-dev created"
           echo "✅ RBAC roles applied"
           echo "✅ Resource quotas configured"
 
@@ -63,15 +49,15 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.port.io
           operation: UPSERT
-          identifier: "wmt-${{ inputs.service }}-dev"
+          identifier: "wmt-${{ fromJson(inputs.port_context).service }}-dev"
           blueprint: environment
           properties: |
             {
-              "type": "dev",
+              "type": "${{ fromJson(inputs.port_context).environment_type }}",
               "status": "active",
-              "namespace": "wmt-${{ inputs.service }}-dev",
-              "resource_profile": "${{ inputs.resource_profile }}",
-              "expiry": "${{ inputs.expiry }}"
+              "namespace": "wmt-${{ fromJson(inputs.port_context).service }}-dev",
+              "resource_profile": "${{ fromJson(inputs.port_context).profile }}",
+              "expiry": "${{ fromJson(inputs.port_context).ttl }}"
             }
 
       - name: Mark Port action run as SUCCESS
@@ -83,4 +69,5 @@ jobs:
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_context).runId }}
           status: SUCCESS
-          logMessage: "✅ Dev environment wmt-${{ inputs.service }}-dev provisioned successfully"
+          logMessage: "✅ Dev environment wmt-${{ fromJson(inputs.port_context).service }}-dev provisioned successfully"
+
