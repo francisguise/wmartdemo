@@ -1,0 +1,6 @@
+# Copy this file to terraform.tfvars and fill in your credentials.
+# Find these under Settings > Credentials in your Port account.
+# DO NOT commit terraform.tfvars to version control.
+
+port_client_id     = "YOUR_PORT_CLIENT_ID"
+port_client_secret = "YOUR_PORT_CLIENT_SECRET"
